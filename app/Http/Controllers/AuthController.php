@@ -10,7 +10,7 @@ class AuthController extends Controller
 {
     public function loginPage()
     {
-        return view('login');
+        return view('auth.login');
     }
     public function login(Request $request)
     {
@@ -23,17 +23,17 @@ class AuthController extends Controller
 
         if (Auth::guard('web')->attempt($validated, $remember_me)) {
             $request->session()->regenerate();
-            return redirect()->intended('dashboard');
+            return redirect()->intended('admin/dashboard');
         }
         return back()->withErrors([
             'email' => "The provided credential do not match our records",
         ])->onlyInput('email');
     }
-    public function register()
+    public function registerPage()
     {
-        return view('register');
+        return view('auth.register');
     }
-    public function store(Request $request)
+    public function register(Request $request)
     {
 
         $data = $request->validateWithBag('register', [
@@ -44,16 +44,13 @@ class AuthController extends Controller
         $userData = $request->only(['name', 'email', 'password']);
         $user =  User::create($userData);
         Auth::login($user, true);
-        return redirect('/dashboard');
+        return redirect('admin/dashboard');
     }
-    public function index()
+    public function logout(Request $request)
     {
-        // dd([
-        //     'session_token' => session()->token(),
-        //     'csrf_token_func' => csrf_token(),
-        //     'xsrf_cookie' => request()->cookie('XSRF-TOKEN'),
-        // ]);
-
-        return view('dashboard');
+        Auth::logout();
+        $request->session()->regenerate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login.page');
     }
 }
